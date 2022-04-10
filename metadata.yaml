@@ -1,7 +1,7 @@
 apiVersion: data.packaging.carvel.dev/v1alpha1
 kind: PackageMetadata
 metadata:
-  name: "kubeapps.app-catalog.vmware.com"
+  name: "kubeapps.community.tanzu.vmware.com"
 spec:
   displayName: "Kubeapps"
   shortDescription: "Kubeapps is a web-based UI for deploying and managing applications in Kubernetes clusters."
