@@ -1,0 +1,32 @@
+#@ load("@ytt:data", "data")
+apiVersion: data.packaging.carvel.dev/v1alpha1
+kind: Package
+metadata:
+  name: #@ "kubeapps.community.tanzu.vmware.com." + data.values.version
+spec:
+  refName: "kubeapps.community.tanzu.vmware.com"
+  version: #@ data.values.version
+  releasedAt: #@ data.values.releasedAt
+  #! TODO(minelson): add includedSoftware with application version from Chart.yaml.
+  #! includedSoftware:
+  #! - displayName: Kubeapps
+  #!   version: TODO
+  valuesSchema:
+    openAPIv3:
+      properties: #@ data.values.properties
+  template:
+    spec:
+      fetch:
+      - imgpkgBundle:
+          #! TODO(minelson): set imgpkgBundle with the sha *after* uploading the build?
+          image: #@ "projects.registry.vmware.com/tce/kubeapps:" + data.values.version
+      template:
+      - helmTemplate:
+          path: config/kubeapps
+      - kbld:
+          paths:
+          - "-"
+          - .imgpkg/images.yml
+          - kbld_config.yml
+      deploy:
+      - kapp: {}

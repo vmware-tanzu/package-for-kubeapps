@@ -1,0 +1,13 @@
+#@ load("@ytt:data", "data")
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.26.0
+directories:
+- path: config
+  contents:
+    - path: kubeapps
+      helmChart:
+        name: kubeapps
+        version: #@ data.values.version
+        repository:
+          url: https://charts.bitnami.com/bitnami/
