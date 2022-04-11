@@ -16,6 +16,7 @@ readonly build_dir="$script_dir/build"
 readonly red='\033[0;31m'
 readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
+registry_domain=projects.registry.vmware.com
 IFS=$'\t\n'   # Split on newlines and tabs (but not on spaces)
 version=""
 
@@ -24,6 +25,11 @@ main() {
 
   local version_dir="$script_dir/$version"
   local bundle_dir="$version_dir/bundle"
+
+  if [ -d "$version_dir" ]; then
+    error "The directory $version_dir already exists. Remove this directory and re-run to re-create the package bundle for $version."
+    exit 1
+  fi
 
   # Create the vendir config for the chart.
   ytt -f "$TEMPLATE_DIR/vendir.yml" --data-value-yaml version="$version" --output-files "$bundle_dir"
@@ -52,18 +58,32 @@ main() {
   info "Copying README to version directory."
   cp "$bundle_dir/config/kubeapps/README.md" "$version_dir/"
 
-  # TODO: Push to registry and get the sha for the package.yaml
+  # Generate the image lock file for the kubeapps bundle.
+  # TODO(minelson): Need to do this more completely, to additionally include
+  # non-deployment image values etc. Perhaps just use yq to get all image
+  # references and create fake deplyoments. Not sure yet.
+  info "Generating image lock file for Kubeapps $version"
+  mkdir "$bundle_dir/.imgpkg"
+  helm template "$bundle_dir/config/kubeapps" | kbld -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> /dev/null
+
+  # TODO(minelson): Eventually get the sha from the bundle lock to put in the
+  # package.yaml rather than the tag.
+  info "Pushing tce/kubeapps:$version image to registry $registry_domain ."
+  imgpkg push --bundle "$registry_domain/tce/kubeapps:$version" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> /dev/null
 
   info "Finished."
 }
 
 # Helpers
 get_options() {
-  while getopts ":h" opt; do
+  while getopts ":h:s" opt; do
     case $opt in
       h)
         print_usage
         exit 0
+        ;;
+      s)
+        export registry_domain=projects-stg.registry.vmware.com
         ;;
       \?)
         error "Invalid option: -$OPTARG"
@@ -85,12 +105,6 @@ get_options() {
     exit 1
   fi
   export version=$1
-
-  local version_dir="$script_dir/$version"
-  if [ -d "$version_dir" ]; then
-    error "The directory $version_dir already exists. Remove this directory and re-run to re-create the package bundle for $version."
-    exit 1
-  fi
 }
 
 print_usage() {
