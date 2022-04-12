@@ -7,7 +7,9 @@ spec:
   refName: "kubeapps.community.tanzu.vmware.com"
   version: #@ data.values.version
   releasedAt: #@ data.values.releasedAt
-  #! TODO(minelson): add includedSoftware with application version from Chart.yaml.
+  #! TODO(minelson): add includedSoftware with application version from
+  #! Chart.yaml once released in TCE kapp controller version.
+  #! See https://github.com/vmware-tanzu/carvel-kapp-controller/issues/212
   #! includedSoftware:
   #! - displayName: Kubeapps
   #!   version: TODO
@@ -19,7 +21,7 @@ spec:
       fetch:
       - imgpkgBundle:
           #! TODO(minelson): set imgpkgBundle with the sha *after* uploading the build?
-          image: #@ "projects.registry.vmware.com/tce/kubeapps:" + data.values.version
+          image: #@ data.values.registry_domain + "/" + data.values.registry_project + "/kubeapps:" + data.values.version
       template:
       - helmTemplate:
           path: config/kubeapps

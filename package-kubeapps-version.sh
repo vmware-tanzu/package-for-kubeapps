@@ -11,19 +11,21 @@ set -o pipefail
 # Variables
 readonly script_name=$(basename "${0}")
 readonly script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-readonly TEMPLATE_DIR="$script_dir/packaging-templates"
+readonly template_dir="$script_dir/packaging-templates"
 readonly build_dir="$script_dir/build"
 readonly red='\033[0;31m'
 readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
-registry_domain=projects.registry.vmware.com
+registry_domain=projects-stg.registry.vmware.com
+registry_project=tce
+packaging_version_suffix=""
 IFS=$'\t\n'   # Split on newlines and tabs (but not on spaces)
 version=""
 
 main() {
   get_options "${@}"
 
-  local version_dir="$script_dir/$version"
+  local version_dir="$script_dir/$version$packaging_version_suffix"
   local bundle_dir="$version_dir/bundle"
 
   if [ -d "$version_dir" ]; then
@@ -32,7 +34,7 @@ main() {
   fi
 
   # Create the vendir config for the chart.
-  ytt -f "$TEMPLATE_DIR/vendir.yml" --data-value-yaml version="$version" --output-files "$bundle_dir"
+  ytt -f "$template_dir/vendir.yml" --data-value-yaml version="$version" --output-files "$bundle_dir"
 
   info "Syncing Kubeapps chart $version via vendir."
   vendir --chdir "$bundle_dir" sync > /dev/null
@@ -48,10 +50,7 @@ main() {
 
   # Create the versioned package yaml. Initially this uses a tag for the
   # imgpkgBundle, we may need to update to a sha at some point.
-  ytt -f "$TEMPLATE_DIR/package.yaml" --data-value-yaml version="$version" --data-value-yaml releasedAt="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" --data-values-file "$yaml_schema" --output-files "$version_dir/"
-
-  # TODO: add the .imgpkg hidden file. Use yq to get all image references
-  # from values.yaml of chart and subcharts to compile list? (also syncImage from kubeapps)
+  ytt -f "$template_dir/package.yaml" --data-value-yaml version="$version$packaging_version_suffix" --data-value-yaml releasedAt="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" --data-value-yaml registry_domain="$registry_domain" --data-value-yaml registry_project="$registry_project" --data-values-file "$yaml_schema" --output-files "$version_dir/"
 
   # The packaging directory structure wants the packaging README in
   # the top level for the version.
@@ -63,27 +62,36 @@ main() {
   # non-deployment image values etc. Perhaps just use yq to get all image
   # references and create fake deplyoments. Not sure yet.
   info "Generating image lock file for Kubeapps $version"
-  mkdir "$bundle_dir/.imgpkg"
-  helm template "$bundle_dir/config/kubeapps" | kbld -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> /dev/null
+  cp "$script_dir/packaging-templates/kbld_config.yml" "$bundle_dir/"
+  mkdir -p "$bundle_dir/.imgpkg"
+  helm template "$bundle_dir/config/kubeapps" | kbld -f "$bundle_dir/kbld_config.yml" -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> /dev/null
 
   # TODO(minelson): Eventually get the sha from the bundle lock to put in the
   # package.yaml rather than the tag.
-  info "Pushing tce/kubeapps:$version image to registry $registry_domain ."
-  imgpkg push --bundle "$registry_domain/tce/kubeapps:$version" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> /dev/null
+  info "Pushing $registry_project/kubeapps:$version$packaging_version_suffix image to registry $registry_domain ."
+  imgpkg push --bundle "$registry_domain/$registry_project/kubeapps:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> /dev/null
 
-  info "Finished."
+  info "Finished. To test the package manually (until automated tests) you can make the package available on your cluster with:"
+  info "kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./$version$packaging_version_suffix/package.yaml"
+  info "and install with:"
+  info "tanzu package install kubeapps --package-name kubeapps.community.tanzu.vmware.com --version $version$packaging_version_suffix"
 }
 
 # Helpers
 get_options() {
-  while getopts ":h:s" opt; do
+  while getopts ":hps:" opt; do
     case $opt in
       h)
         print_usage
         exit 0
         ;;
+      p)
+        export registry_domain=projects.registry.vmware.com
+        export registry_project=kubeapps
+        ;;
       s)
-        export registry_domain=projects-stg.registry.vmware.com
+        # Support adding a suffix to the version name such as -dev1
+        export packaging_version_suffix="$OPTARG"
         ;;
       \?)
         error "Invalid option: -$OPTARG"
@@ -109,7 +117,11 @@ get_options() {
 
 print_usage() {
   cat <<EOF
-Usage: $script_name [OPTIONS] bitnami-chart-version
+Usage: $script_name [-hsp] CHART_VERSION
+
+  -h         display help
+  -s SUFFIX  set the carvel package version suffix to SUFFIX
+  -p         use the production registry and project rather than staging
 EOF
 }
 
