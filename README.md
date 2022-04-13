@@ -38,7 +38,7 @@ When running Kubeapps on a cluster with Contour installed, it is possible to use
    tanzu package install kubeapps \
       --package-name kubeapps.community.tanzu.vmware.com \
       --version ${KUBEAPPS_PACKAGE_VERSION} \
-      --
+      --values-file my-values.yaml
    ```
 
    > You can get the `${KUBEAPPS_PACKAGE_VERSION}` by running `tanzu
