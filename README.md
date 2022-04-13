@@ -1,6 +1,6 @@
 # Kubeapps
 
-Kubeapps is a web-based UI for launching and managing applications on Kubernetes.
+Kubeapps is an in-cluster web-based application that enables users with a one-time installation to deploy, manage, and upgrade applications on a Kubernetes cluster.
 
 See the [Kubeapps project README](https://github.com/vmware-tanzu/kubeapps) for more details.
 
