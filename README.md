@@ -2,7 +2,7 @@
 
 Kubeapps is a web-based UI for launching and managing applications on Kubernetes.
 
-[Overview of Kubeapps](https://github.com/vmware-tanzu/kubeapps)
+See the [Kubeapps project README](https://github.com/vmware-tanzu/kubeapps) for more details.
 
 ## Components
 
@@ -51,12 +51,6 @@ When running Kubeapps on a cluster with Contour installed, it is possible to use
 For Kubeapps-specific documentation, check out
 our the main repository
 [vmware-tanzu/kubeapps](https://github.com/vmware-tanzu/kubeapps).
-
-Other documentation related to the Carvel package of Kubeapps:
-
-[carvel]: https://carvel.dev/
-[kapp-controller]: https://github.com/vmware-tanzu/carvel-kapp-controller
-[Tanzu CLI]: https://github.com/vmware-tanzu/tanzu-framework
 
 ## Contributing
 
