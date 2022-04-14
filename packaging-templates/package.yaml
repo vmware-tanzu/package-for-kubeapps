@@ -21,7 +21,7 @@ spec:
       fetch:
       - imgpkgBundle:
           #! TODO(minelson): set imgpkgBundle with the sha *after* uploading the build?
-          image: #@ data.values.registry_domain + "/" + data.values.registry_project + "/kubeapps:" + data.values.version
+          image: #@ data.values.ociRepo + ":" + data.values.version
       template:
       - helmTemplate:
           path: config/kubeapps

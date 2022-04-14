@@ -1,11 +1,7 @@
 #! /usr/bin/env bash
 
-# Bash settings
-# abort on nonzero exitstatus
 set -o errexit
-# abort on unbound variable
 set -o nounset
-# don't hide errors within pipes
 set -o pipefail
 
 # Variables
@@ -16,60 +12,61 @@ readonly build_dir="$script_dir/build"
 readonly red='\033[0;31m'
 readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
-registry_domain=projects-stg.registry.vmware.com
-registry_project=tce
+# TODO(minelson): Update staging project once we have access. For now
+# we can keep pushing to the staging tce project.
+readonly staging_oci_repo="projects-stg.registry.vmware.com/tce/kubeapps"
+readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
+readonly logfile="/tmp/package-kubeapps-version.log"
+
+source test/testing-lib.sh
+
+# Default to staging repo for development work unless production specified.
+oci_repo="$staging_oci_repo"
+# version will be set by get_options.
+version=""
+
 packaging_version_suffix=""
 IFS=$'\t\n'   # Split on newlines and tabs (but not on spaces)
-version=""
 
 main() {
   get_options "${@}"
 
   local version_dir="$script_dir/$version$packaging_version_suffix"
   local bundle_dir="$version_dir/bundle"
-
-  if [ -d "$version_dir" ]; then
-    error "The directory $version_dir already exists. Remove this directory and re-run to re-create the package bundle for $version."
-    exit 1
-  fi
-
-  # Create the vendir config for the chart.
-  ytt -f "$template_dir/vendir.yml" --data-value-yaml version="$version" --output-files "$bundle_dir"
-
-  info "Syncing Kubeapps chart $version via vendir."
-  vendir --chdir "$bundle_dir" sync > /dev/null
-
-  # Generate the full json-schema for the chart.
-  # Note: the values-schema.json in the bitnami Kubeapps chart is just
-  # for the simple forms support.
-  info "Generating the json-schema for the chart and converting to yaml"
-  local json_schema="$build_dir/kubeapps-$version-schema.json"
-  readme-generator -v "$bundle_dir/config/kubeapps/values.yaml" --schema "$json_schema" >/dev/null 2>&1
   local yaml_schema="$build_dir/kubeapps-$version-schema.yaml"
-  yq -P "$json_schema" > "$yaml_schema"
 
-  # Create the versioned package yaml. Initially this uses a tag for the
-  # imgpkgBundle, we may need to update to a sha at some point.
-  ytt -f "$template_dir/package.yaml" --data-value-yaml version="$version$packaging_version_suffix" --data-value-yaml releasedAt="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" --data-value-yaml registry_domain="$registry_domain" --data-value-yaml registry_project="$registry_project" --data-values-file "$yaml_schema" --output-files "$version_dir/"
+  # check_no_overwrite "$version_dir"
 
-  # The packaging directory structure wants the packaging README in
-  # the top level for the version.
-  info "Copying README to version directory."
-  cp "$bundle_dir/config/kubeapps/README.md" "$version_dir/"
+  # sync_chart_via_vendir "$template_dir/vendir.yml" "$version" "$version_dir"
 
-  # Generate the image lock file for the kubeapps bundle.
-  # TODO(minelson): Need to do this more completely, to additionally include
-  # non-deployment image values etc. Perhaps just use yq to get all image
-  # references and create fake deplyoments. Not sure yet.
-  info "Generating image lock file for Kubeapps $version"
-  cp "$script_dir/packaging-templates/kbld_config.yml" "$bundle_dir/"
-  mkdir -p "$bundle_dir/.imgpkg"
-  helm template "$bundle_dir/config/kubeapps" | kbld -f "$bundle_dir/kbld_config.yml" -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> /dev/null
+  # generate_yaml_schema "$version" "$bundle_dir" "$yaml_schema"
 
-  # TODO(minelson): Eventually get the sha from the bundle lock to put in the
-  # package.yaml rather than the tag.
-  info "Pushing $registry_project/kubeapps:$version$packaging_version_suffix image to registry $registry_domain ."
-  imgpkg push --bundle "$registry_domain/$registry_project/kubeapps:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> /dev/null
+  # # The packaging directory structure wants the packaging README in
+  # # the top level for the version.
+  # info "Copying README to version directory."
+  # cp "$bundle_dir/config/kubeapps/README.md" "$version_dir/"
+
+  # generate_image_lock_file "$bundle_dir"
+
+  # # Generate the package yaml for the staging release first.
+  # generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
+
+  # # TODO(minelson): Eventually get the sha from the bundle lock to put in the
+  # # package.yaml rather than the tag.
+  # info "Pushing $oci_repo:$version$packaging_version_suffix image."
+  # imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
+
+  # info "Testing installation of new package $version$packaging_version_suffix"
+  # setup_kind_cluster
+  install_kubeapps "$version$packaging_version_suffix"
+  delete_kind_cluster
+
+  # Commit, tag and create a release for production only.
+  if [ "$oci_repo" = "$production_oci_repo" ]; then
+    create_release "$version" "$packaging_version_suffix"
+  else
+    info "Skipping creation of release for staging test."
+  fi
 
   info "Finished. To test the package manually (until automated tests) you can make the package available on your cluster with:"
   info "kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./$version$packaging_version_suffix/package.yaml"
@@ -78,6 +75,73 @@ main() {
 }
 
 # Helpers
+check_no_overwrite() {
+  local version_dir=$1
+
+  if [ -d "$version_dir" ]; then
+    error "The directory $version_dir already exists. Remove this directory and re-run to re-create the package bundle for this version."
+    exit 1
+  fi
+}
+
+create_release() {
+  local version=$1
+  local packaging_version_suffix=$2
+  local tag="v$version$packaging_version_suffix"
+  git commit -am "Adding $tag files"
+  info "Committing files and tagging $tag for release"
+  git tag "$tag" -m "$tag"
+  git push upstream "tags/$tag"
+
+  info "Creating release for $tag"
+  gh release create "$tag" "./$version/package.yaml" "./metadata.yaml" \
+    --title "Kubeapps Carvel package $version$packaging_version_suffix" \
+    --repo vmware-tanzu/package-for-kubeapps \
+    --notes-file "$template_dir/release-notes.md"
+}
+
+generate_image_lock_file() {
+  # Generate the image lock file for the kubeapps bundle.
+  # TODO(minelson): Need to do this more completely, to additionally include
+  # non-deployment image values etc. Perhaps just use yq to get all image
+  # references and create fake deplyoments. Not sure yet.
+  info "Generating image lock file for Kubeapps $version"
+  local bundle_dir=$1
+  cp "$template_dir/kbld_config.yml" "$bundle_dir/"
+  mkdir -p "$bundle_dir/.imgpkg"
+  helm template "$bundle_dir/config/kubeapps" | kbld -f "$bundle_dir/kbld_config.yml" -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> "$logfile"
+}
+
+generate_package_yaml() {
+  info "Generating $version_dir/package.yaml"
+  local version=$1
+  local packaging_version_suffix=$2
+  local version_dir=$3
+  local yaml_schema=$4
+  local oci_repo=$5
+  # Create the versioned package yaml. Initially this uses a tag for the
+  # imgpkgBundle, we may need to update to a sha at some point.
+  ytt -f "$template_dir/package.yaml" \
+    --data-value-yaml version="$version$packaging_version_suffix" \
+    --data-value-yaml releasedAt="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" \
+    --data-value-yaml ociRepo="$oci_repo" \
+    --data-values-file "$yaml_schema" \
+    --output-files "$version_dir/"
+}
+
+generate_yaml_schema() {
+  local version=$1
+  local bundle_dir=$2
+  local yaml_schema=$3
+  # Generate the full json-schema for the chart.
+  # Note: the values-schema.json in the bitnami Kubeapps chart is just
+  # for the simple forms support.
+  info "Generating the json-schema for the chart and converting to yaml"
+  local json_schema="$build_dir/kubeapps-$version-schema.json"
+  readme-generator -v "$bundle_dir/config/kubeapps/values.yaml" --schema "$json_schema" >"$logfile" 2>&1
+  yq -P "$json_schema" > "$yaml_schema"
+}
+
 get_options() {
   while getopts ":hps:" opt; do
     case $opt in
@@ -86,8 +150,7 @@ get_options() {
         exit 0
         ;;
       p)
-        export registry_domain=projects.registry.vmware.com
-        export registry_project=kubeapps
+        export oci_repo="$production_oci_repo"
         ;;
       s)
         # Support adding a suffix to the version name such as -dev1
@@ -125,6 +188,17 @@ Usage: $script_name [-hsp] CHART_VERSION
 EOF
 }
 
+sync_chart_via_vendir(){
+  local vendir_yml=$1
+  local version=$2
+  local version_dir=$3
+  # Create the vendir config for the chart.
+  ytt -f "$vendir_yml" --data-value-yaml version="$version" --output-files "$bundle_dir"
+
+  info "Syncing Kubeapps chart $version via vendir to $bundle_dir."
+  vendir --chdir "$bundle_dir" sync > "$logfile"
+}
+
 error() {
   printf "${red}Error:${reset_color} %s\\n" "${*}" 1>&2
 }
@@ -132,5 +206,13 @@ error() {
 info() {
   printf "${green}Info:${reset_color} %s\\n" "${*}" 1>&2
 }
+
+err_report() {
+    if [ "$1" != "0" ]; then
+      echo "Error $1 occurred on $2. View logs in $logfile"
+    fi
+}
+
+trap 'err_report $? $LINENO' EXIT
 
 main "${@}"
