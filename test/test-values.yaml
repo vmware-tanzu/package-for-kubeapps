@@ -1,0 +1,23 @@
+# Copyright 2019-2022 the Kubeapps contributors.
+# SPDX-License-Identifier: Apache-2.0
+
+frontend:
+  replicaCount: 1
+assetsvc:
+  replicaCount: 1
+dashboard:
+  replicaCount: 1
+kubeops:
+  replicaCount: 1
+postgresql:
+  architecture: standalone
+  primary:
+    persistence:
+      enabled: false
+kubeappsapis:
+  replicaCount: 1
+packaging:
+  helm:
+    enabled: false
+  carvel:
+    enabled: true
