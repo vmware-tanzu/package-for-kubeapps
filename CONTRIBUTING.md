@@ -5,6 +5,45 @@ read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All cont
 signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on
 as an open-source patch.
 
+## Running the `package-kubeapps-version.sh` script locally
+
+Until the script is containerized (#11), you will need the following software installed:
+
+- The complete [Carvel toolset](https://carvel.dev/#install),
+- [Kubernetes in Docker](https://kind.sigs.k8s.io/) for the integration test of the generated package,
+- The [GitHub CLI](https://cli.github.com/) for creating the release in the repository,
+- The [Helm CLI](https://helm.sh/) for templating out the Bitnami Kubeapps Helm chart when creating the Carvel package.
+- Bitnami's [readme-generator-for-helm tool](https://github.com/bitnami-labs/readme-generator-for-helm) for creating the complete json schema for the Carvel package, as well as
+- The [yq yaml processor](https://mikefarah.gitbook.io/yq/) to convert the json schema to a yaml schema.
+
+Currently with these tools installed, you can only test-run the `package-kubeapps-version.sh` to push a new package to the staging (or production) registry if you have VMware VPN access available (#12).
+
+The following example runs the script to package the 8.0.10 version of the Bitnami chart. It uses an explicit suffix for the package version (`-dev1`) only because the `8.0.10` version of the package already exists:
+
+```bash
+$ ./package-kubeapps-version.sh -s '-dev1' 8.0.10
+creating: /home/michael/dev/vmware/package-for-kubeapps/8.0.10-dev1/bundle/vendir.yml
+Info: Syncing Kubeapps chart 8.0.10 via vendir to /home/michael/dev/vmware/package-for-kubeapps/8.0.10-dev1/bundle.
+Info: Generating the json-schema for the chart and converting to yaml
+Info: Copying README to version directory.
+Info: Generating image lock file for Kubeapps 8.0.10
+...
+Info: Generating /home/michael/dev/vmware/package-for-kubeapps/8.0.10-dev1/package.yaml
+creating: /home/michael/dev/vmware/package-for-kubeapps/8.0.10-dev1/package.yaml
+Info: Pushing projects-stg.registry.vmware.com/tce/kubeapps:8.0.10-dev1 image.
+Info: Testing installation of new package 8.0.10-dev1
+...
+Package install reconciled successfully. Deleting...
+...
+Uninstalled package 'kubeapps' from namespace 'default'
+Deleting cluster "kubeapps-carvel-e2e" ...
+Info: Skipping creation of release for staging test.
+Info: Finished. To test the package manually (until automated tests) you can make the package available on your cluster with:
+Info: kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./8.0.10-dev1/package.yaml
+Info: and install with:
+Info: tanzu package install kubeapps --package-name kubeapps.community.tanzu.vmware.com --version 8.0.10-dev1
+```
+
 ## Contribution Flow
 
 This is a rough outline of what a contributor's workflow looks like:

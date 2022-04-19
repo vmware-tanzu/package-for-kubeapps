@@ -18,11 +18,13 @@ setup_kind_cluster() {
   echo "Cluster config: ${CLUSTER_CONFIG}"
   kubectl --kubeconfig="${CLUSTER_CONFIG}" apply -f "https://github.com/vmware-tanzu/carvel-kapp-controller/releases/download/${KAPP_CONTROLLER_VERSION}/release.yml"
 
-  # TODO: Need to wait until CR is being recognised, otherwise get the
-  # following when installing kubeapps.
-  # unable to recognize "metadata.yaml": no matches for kind "PackageMetadata" in version "data.packaging.carvel.dev/v1alpha1"
-  # unable to recognize "8.0.10-dev1/package.yaml": no matches for kind "Package" in version "data.packaging.carvel.dev/v1alpha1"
-  # Error 1 occurred on 1. View logs in /tmp/package-kubeapps-version.log
+  # It's not enough to wait for the pod to be ready, we need to wait until
+  # the carvel data packaging API services is available. Cannot see way to
+  # user `kubectl wait` for this either, since no top-level conditions.
+  until kubectl get apiservices v1alpha1.data.packaging.carvel.dev -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep True ; do
+      echo "Waiting for v1alpha1.data.packaging.carvel.dev apiservice to be available..."
+      sleep 3 ;
+  done
 }
 
 delete_kind_cluster() {
