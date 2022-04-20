@@ -21,7 +21,7 @@ setup_kind_cluster() {
   # It's not enough to wait for the pod to be ready, we need to wait until
   # the carvel data packaging API services is available. Cannot see way to
   # user `kubectl wait` for this either, since no top-level conditions.
-  until kubectl get apiservices v1alpha1.data.packaging.carvel.dev -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep True ; do
+  until kubectl --kubeconfig="${CLUSTER_CONFIG}" get apiservices v1alpha1.data.packaging.carvel.dev -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep True ; do
       echo "Waiting for v1alpha1.data.packaging.carvel.dev apiservice to be available..."
       sleep 3 ;
   done

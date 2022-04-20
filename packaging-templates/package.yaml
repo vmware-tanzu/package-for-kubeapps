@@ -25,6 +25,9 @@ spec:
       template:
       - helmTemplate:
           path: config/kubeapps
+      - ytt:
+          paths:
+          - "-"
       - kbld:
           paths:
           - "-"
