@@ -35,33 +35,33 @@ main() {
   local bundle_dir="$version_dir/bundle"
   local yaml_schema="$build_dir/kubeapps-$version-schema.yaml"
 
-  check_no_overwrite "$version_dir"
+  # check_no_overwrite "$version_dir"
 
-  sync_chart_via_vendir "$template_dir/vendir.yml" "$version" "$version_dir"
+  # sync_chart_via_vendir "$template_dir/vendir.yml" "$version" "$version_dir"
 
-  update_default_values "$bundle_dir/config/kubeapps/values.yaml"
+  # update_default_values "$bundle_dir/config/kubeapps/values.yaml"
 
-  regenerate_readme_and_schema "$version" "$bundle_dir" "$yaml_schema"
+  # regenerate_readme_and_schema "$version" "$bundle_dir" "$yaml_schema"
 
-  # The packaging directory structure wants the packaging README in
-  # the top level for the version.
-  info "Copying README to version directory."
-  cp "$bundle_dir/config/kubeapps/README.md" "$version_dir/"
+  # # The packaging directory structure wants the packaging README in
+  # # the top level for the version.
+  # info "Copying README to version directory."
+  # cp "$bundle_dir/config/kubeapps/README.md" "$version_dir/"
 
-  generate_image_lock_file "$bundle_dir"
+  # generate_image_lock_file "$bundle_dir"
 
-  # Generate the package yaml for the staging release first.
-  generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
+  # # Generate the package yaml for the staging release first.
+  # generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
 
-  # TODO(minelson): Eventually get the sha from the bundle lock to put in the
-  # package.yaml rather than the tag.
-  info "Pushing $oci_repo:$version$packaging_version_suffix image."
-  imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
+  # # TODO(minelson): Eventually get the sha from the bundle lock to put in the
+  # # package.yaml rather than the tag.
+  # info "Pushing $oci_repo:$version$packaging_version_suffix image."
+  # imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
 
-  info "Testing installation of new package $version$packaging_version_suffix"
-  setup_kind_cluster
-  install_kubeapps "$version$packaging_version_suffix"
-  delete_kind_cluster
+  # info "Testing installation of new package $version$packaging_version_suffix"
+  # setup_kind_cluster
+  # install_kubeapps "$version$packaging_version_suffix"
+  # delete_kind_cluster
 
   # Commit, tag and create a release for production only.
   if [ "$oci_repo" = "$production_oci_repo" ]; then
@@ -89,7 +89,9 @@ check_no_overwrite() {
 create_release() {
   local version=$1
   local packaging_version_suffix=$2
-  local tag="v$version$packaging_version_suffix"
+  local version_with_suffix="$version$packaging_version_suffix"
+  local tag="v$version_with_suffix"
+  git add "./$version_with_suffix"
   git commit -am "Adding $tag files"
   info "Committing files and tagging $tag for release"
   git tag "$tag" -m "$tag"

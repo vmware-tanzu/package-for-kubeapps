@@ -1,0 +1,32 @@
+---
+apiVersion: imgpkg.carvel.dev/v1alpha1
+images:
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-apis:2.4.4-debian-10-r18
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.4.4-debian-10-r18
+          url: docker.io/bitnami/kubeapps-apis:2.4.4-debian-10-r18
+  image: index.docker.io/bitnami/kubeapps-apis@sha256:337fa65abd1d746d48e501dcd5621fee2f88ab9dec7d53f80444e83a993d395f
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-dashboard:2.4.4-debian-10-r11
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.4.4-debian-10-r11
+          url: docker.io/bitnami/kubeapps-dashboard:2.4.4-debian-10-r11
+  image: index.docker.io/bitnami/kubeapps-dashboard@sha256:0bf87cb8f687ec250a2e16f15130c02ae6806388692fa81978353b5ac3f9263e
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-kubeops:2.4.4-scratch-r1
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.4.4-scratch-r1
+          url: docker.io/bitnami/kubeapps-kubeops:2.4.4-scratch-r1
+  image: index.docker.io/bitnami/kubeapps-kubeops@sha256:a09611423e7cd34889cb158e490a84bd5e679acc088f30fea22c9b0e000a3bed
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/nginx:1.21.6-debian-10-r80
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 1.21.6-debian-10-r80
+          url: docker.io/bitnami/nginx:1.21.6-debian-10-r80
+  image: index.docker.io/bitnami/nginx@sha256:d215b3014e020b751fc091acf1ac855e58894f8917bbd4eadfc5c59432048616
+kind: ImagesLock
