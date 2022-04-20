@@ -39,7 +39,9 @@ main() {
 
   sync_chart_via_vendir "$template_dir/vendir.yml" "$version" "$version_dir"
 
-  generate_yaml_schema "$version" "$bundle_dir" "$yaml_schema"
+  update_default_values "$bundle_dir/config/kubeapps/values.yaml"
+
+  regenerate_readme_and_schema "$version" "$bundle_dir" "$yaml_schema"
 
   # The packaging directory structure wants the packaging README in
   # the top level for the version.
@@ -129,7 +131,7 @@ generate_package_yaml() {
     --output-files "$version_dir/"
 }
 
-generate_yaml_schema() {
+regenerate_readme_and_schema() {
   local version=$1
   local bundle_dir=$2
   local yaml_schema=$3
@@ -138,7 +140,7 @@ generate_yaml_schema() {
   # for the simple forms support.
   info "Generating the json-schema for the chart and converting to yaml"
   local json_schema="$build_dir/kubeapps-$version-schema.json"
-  readme-generator -v "$bundle_dir/config/kubeapps/values.yaml" --schema "$json_schema" >"$logfile" 2>&1
+  readme-generator -v "$bundle_dir/config/kubeapps/values.yaml" --readme "$bundle_dir/config/kubeapps/README.md" --schema "$json_schema" >"$logfile" 2>&1
   yq -P "$json_schema" > "$yaml_schema"
 }
 
@@ -186,6 +188,13 @@ Usage: $script_name [-hsp] CHART_VERSION
   -s SUFFIX  set the carvel package version suffix to SUFFIX
   -p         use the production registry and project rather than staging
 EOF
+}
+
+update_default_values() {
+  local values_file=$1
+
+  info "Updating values file to default to carvel support."
+  yq '.packaging.helm.enabled = false , .packaging.carvel.enabled = true' --inplace $values_file
 }
 
 sync_chart_via_vendir(){
