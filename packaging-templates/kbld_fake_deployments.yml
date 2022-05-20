@@ -1,0 +1,16 @@
+#@ load("@ytt:data", "data")
+
+#@ images = data.read("images.txt").split()
+
+#@ for image in images:
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - image: #@ image
+#@ end
