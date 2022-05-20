@@ -117,6 +117,7 @@ generate_image_lock_file() {
   find 8.0.14 -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
 
   info "Generating fake deployments for kbld images."
+  cp "$template_dir/kbld_config.yml" "$bundle_dir/"
   mkdir -p "$bundle_dir/.imgpkg"
   ytt -f "$build_dir/images.txt" -f "$template_dir/kbld_fake_deployments.yml" | kbld -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> "$logfile"
 }
