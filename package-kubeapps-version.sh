@@ -111,9 +111,14 @@ generate_image_lock_file() {
   # references and create fake deplyoments. Not sure yet.
   info "Generating image lock file for Kubeapps $version"
   local bundle_dir=$1
-  cp "$template_dir/kbld_config.yml" "$bundle_dir/"
+
+  info "Collecting all images to $build_dir/images.txt"
+  find 8.0.14 -name "values.yaml" -exec yq '... | select(has("image")) | .image.registry + "/" + .image.repository + ":" + .image.tag' {} \; | uniq > "$build_dir/images.txt"
+  find 8.0.14 -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
+
+  info "Generating fake deployments for kbld images."
   mkdir -p "$bundle_dir/.imgpkg"
-  helm template "$bundle_dir/config/kubeapps" | kbld -f "$bundle_dir/kbld_config.yml" -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> "$logfile"
+  ytt -f "$build_dir/images.txt" -f "$template_dir/kbld_fake_deployments.yml" | kbld -f - --imgpkg-lock-output "$bundle_dir/.imgpkg/images.yml" 1> "$logfile"
 }
 
 generate_package_yaml() {

@@ -20,7 +20,9 @@ spec:
     spec:
       fetch:
       - imgpkgBundle:
-          #! TODO(minelson): set imgpkgBundle with the sha *after* uploading the build?
+          #! The app CR spec allows a tag or digest reference
+          #! for the imgpkgBundle.image.
+          #! See https://carvel.dev/kapp-controller/docs/v0.36.1/app-spec/#docs
           image: #@ data.values.ociRepo + ":" + data.values.version
       template:
       - helmTemplate:
