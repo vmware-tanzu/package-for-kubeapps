@@ -98,8 +98,7 @@ create_release() {
   git push upstream "tags/$tag"
 
   info "Creating release for $tag"
-  gh release create "$tag" "./$version_with_suffix/package.yaml" "./metadata.yaml" \
-    --title "Kubeapps Carvel package $version_with_suffix" \
+  gh release create "$tag" "./$version_with_suffix/package.yaml" "./metadata.yaml" "./README.md" \
     --repo vmware-tanzu/package-for-kubeapps \
     --notes-file "$template_dir/release-notes.md"
 }
