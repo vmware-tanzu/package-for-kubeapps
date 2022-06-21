@@ -17,7 +17,11 @@ In addition, you also need permission to be able to push images to the relevant 
 
 ### Access to the production projects.registry.vmware.com kubeapps project
 
-While connected to the VMware VPN, visit the Harbor instance at [projects.registry.vmware.com](https://projects.registry.vmware.com) and login with your vmware credentials (your username without email). Search for the kubeapps project, for which you should have been given an Admin role, select the project and you will be presented with the single kubeapps/kubeapps repository.
+Both the staging and production distribution registries have the `tanzu-kubeapps-team` as an admin member for the `kubeapps` project, so you should have access to the project as long as you are a member of that group.
+
+Although this already allows you to pull and push images to the project, you should create a bot account to authenticate and use with the script rather than your own credentials.
+
+While connected to the VMware VPN, visit the Harbor instance at [projects.registry.vmware.com](https://projects.registry.vmware.com) and login with your vmware credentials (your username without email). Search for the kubeapps project, for which you should find you have an Admin role (as part of `tanzu-kubeapps-team`), select the project and you will be presented with the single kubeapps/kubeapps repository.
 
 Click on the Robot Accounts tab then New Robot Account and create a bot account with a name such as `release-bot-local-<your username>` with an appropriate expiry. Copy the secret and then in your terminal use:
 
