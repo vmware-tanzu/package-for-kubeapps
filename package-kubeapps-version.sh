@@ -53,8 +53,6 @@ main() {
   # Generate the package yaml for the staging release first.
   generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
 
-  # TODO(minelson): Eventually get the sha from the bundle lock to put in the
-  # package.yaml rather than the tag.
   info "Pushing $oci_repo:$version$packaging_version_suffix image."
   imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
 
