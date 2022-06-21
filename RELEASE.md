@@ -69,6 +69,19 @@ Given that the above was a non-production run against the staging registry, the 
 
 For a production release you will need to run the script with the `-p` option which, in addition to pushing the image to the production registry, will also add, commit and tag the new files locally, push the tag to the `upstream` remote and create the release. The script does not currently push your updated branch with the new commits upstream, see [Issue 20](https://github.com/vmware-tanzu/package-for-kubeapps/issues/20).
 
+## Updating the TCE repository to include the new package
+
+Once we've published a new package to the production registry, we need to request that the new package be included in the TCE repository via a pull-request.
+
+The [initial pull-request to include Kubeapps in the TCE repository](https://github.com/vmware-tanzu/community-edition/pull/4666) added:
+
+- `addons/packages/kubeapps/metadata.yaml` - the metadata which tends not to change with new versions,
+- `addons/packages/kubeapps/vendir.yml` - a vendir configuration which specifies the GitHub release from which to pull the README.md and `package.yaml` and where to place them.
+
+The vendir tool was then run in the `addons/packages/kubeapps` directory to ensure all files are in place, before committing and creating the PR.
+
+Subsequent updates for the Kubeapps package in TCE will involve modifying the `vendir.yml` to add a new path for the next release and re-running vendir before creating the PR. You can see example PRs like this for other packages, such as the [update PR for the FluxCD Helm Controller package](https://github.com/vmware-tanzu/community-edition/pull/4611/files) which adds a new `path` to the vendir.yml which is vendir'd as well as a minor manual update to the metadata.yaml (adding an icon).
+
 ## Overview of the packaging script
 
 The functionality for creating, testing and publishing a new Kubeapps carvel package is contained primarily in the [package-kubeapps-version.sh bash script](./package-kubeapps-version.sh), with the test-related functionality in the separate [test/testing-lib.sh](./test/testing-lib.sh).
@@ -76,3 +89,5 @@ The functionality for creating, testing and publishing a new Kubeapps carvel pac
 Where possible, effort has been made to utilise the related carvel tooling such as vendir, ytt and imgpkg.
 
 A number of [remaining improvements to the packaging release process have been documented as issues](https://github.com/vmware-tanzu/package-for-kubeapps/issues) but have not yet been raised in priority.
+
+The functionality of the script is based on the [recommendations of the TCE packaging documentation](https://github.com/vmware-tanzu/community-edition/tree/main/docs/packaging).
