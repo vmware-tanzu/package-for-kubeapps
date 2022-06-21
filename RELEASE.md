@@ -39,7 +39,7 @@ A similar process is now used for the staging harbor instance at [projects-stg.r
 
 With the above dependencies available, you can only test-run the `package-kubeapps-version.sh` to push a new package to the staging (or production) registry while connected to the VPN (See [Issue #12](https://github.com/vmware-tanzu/package-for-kubeapps/issues/12) for enabling testing the release project with other OCI registries).
 
-The following example runs the script to package the 8.0.10 version of the Bitnami chart. It uses an explicit suffix for the package version (`-dev1`) only because the `8.0.14` version of the package already exists:
+The following example runs the script to package the 8.0.10 version of the Bitnami chart. It uses an explicit suffix for the package version (`-dev1`) only because the `8.0.14` version of the package already exists. After ensuring that the version you want to package is already cached in your local helm cache (`helm repo update && helm search repo kubeapps`):
 
 ```bash
 $ ./package-kubeapps-version.sh -s '-dev1' 8.0.14
