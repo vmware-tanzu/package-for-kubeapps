@@ -29,43 +29,51 @@ and enter the copied secret. You should then see a "Login Succeeded" message.
 
 ### Access to the staging repository
 
-A similar process is used for the staging harbor instance at [projects-stg.registry.vmware.com](https://projects-stg.registry.vmware.com), with the difference that we don't have our own kubeapps project there and so the script is configured to push to the tce/kubeapps repository. You will need a developer role to push there. As we don't control the project, neither can we create robot accounts, so you will need to `docker login` with your own credentials, which is not ideal. I have requested a separate kubeapps project on projects-stg that we can administer.
+A similar process is now used for the staging harbor instance at [projects-stg.registry.vmware.com](https://projects-stg.registry.vmware.com) since we now have access to an identical kubeapps project on the staging service.
 
 ## Running the script
 
 With the above dependencies available, you can only test-run the `package-kubeapps-version.sh` to push a new package to the staging (or production) registry while connected to the VPN (See [Issue #12](https://github.com/vmware-tanzu/package-for-kubeapps/issues/12) for enabling testing the release project with other OCI registries).
 
-The following example runs the script to package the 8.0.10 version of the Bitnami chart. It uses an explicit suffix for the package version (`-dev1`) only because the `8.0.10` version of the package already exists:
+The following example runs the script to package the 8.0.10 version of the Bitnami chart. It uses an explicit suffix for the package version (`-dev1`) only because the `8.0.14` version of the package already exists:
 
 ```bash
-$ ./package-kubeapps-version.sh -s '-dev1' 8.0.10
-creating: /.../package-for-kubeapps/8.0.10-dev1/bundle/vendir.yml
-Info: Syncing Kubeapps chart 8.0.10 via vendir to /.../package-for-kubeapps/8.0.10-dev1/bundle.
+$ ./package-kubeapps-version.sh -s '-dev1' 8.0.14
+creating: /home/michael/dev/vmware/package-for-kubeapps/8.0.14-dev1/bundle/vendir.yml
+Info: Syncing Kubeapps chart 8.0.14 via vendir to /home/michael/dev/vmware/package-for-kubeapps/8.0.14-dev1/bundle.
+Info: Updating values file to default to carvel support.
 Info: Generating the json-schema for the chart and converting to yaml
 Info: Copying README to version directory.
-Info: Generating image lock file for Kubeapps 8.0.10
+Info: Generating image lock file for Kubeapps 8.0.14
+Info: Collecting all images to /home/michael/dev/vmware/package-for-kubeapps/build/images.txt
+Info: Generating fake deployments for kbld images.
 ...
-Info: Generating /.../package-for-kubeapps/8.0.10-dev1/package.yaml
-creating: /.../package-for-kubeapps/8.0.10-dev1/package.yaml
-Info: Pushing projects-stg.registry.vmware.com/tce/kubeapps:8.0.10-dev1 image.
-Info: Testing installation of new package 8.0.10-dev1
+Info: Generating /home/michael/dev/vmware/package-for-kubeapps/8.0.14-dev1/package.yaml
+creating: /home/michael/dev/vmware/package-for-kubeapps/8.0.14-dev1/package.yaml
+Info: Pushing projects-stg.registry.vmware.com/kubeapps/kubeapps:8.0.14-dev1 image.
+Info: Testing installation of new package 8.0.14-dev1
 Creating cluster "kubeapps-carvel-e2e" ...
  ✓ Ensuring node image (kindest/node:1.21.1) 🖼
  ✓ Preparing nodes 📦
  ✓ Writing configuration 📜
-...
+ ✓ Starting control-plane 🕹️
+ ...
 Package install reconciled successfully. Deleting...
+| Uninstalling package 'kubeapps' from namespace 'default'
 ...
-Uninstalled package 'kubeapps' from namespace 'default'
 Deleting cluster "kubeapps-carvel-e2e" ...
 Info: Skipping creation of release for staging test.
 Info: Finished. To test the package manually (until automated tests) you can make the package available on your cluster with:
-Info: kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./8.0.10-dev1/package.yaml
+Info: kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./8.0.14-dev1/package.yaml
 Info: and install with:
-Info: tanzu package install kubeapps --package-name kubeapps.community.tanzu.vmware.com --version 8.0.10-dev1
+Info: tanzu package install kubeapps --package-name kubeapps.community.tanzu.vmware.com --version 8.0.14-dev1
 ```
 
-Given that the above was a non-production run against the staging registry, the generated local files will not be committed or tagged nor will a GitHub release have been created. You can delete the generated files to put your local git repository back to its initial state.
+Given that the above was a non-production run against the staging registry, the generated local files will not be committed or tagged nor will a GitHub release have been created. You can delete the generated files to put your local git repository back to its initial state:
+
+```bash
+rm 8.0.14-dev1 -rf
+```
 
 For a production release you will need to run the script with the `-p` option which, in addition to pushing the image to the production registry, will also add, commit and tag the new files locally, push the tag to the `upstream` remote and create the release. The script does not currently push your updated branch with the new commits upstream, see [Issue 20](https://github.com/vmware-tanzu/package-for-kubeapps/issues/20).
 

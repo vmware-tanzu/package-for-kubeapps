@@ -14,7 +14,7 @@ readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
 # TODO(minelson): Update staging project once we have access. For now
 # we can keep pushing to the staging tce project.
-readonly staging_oci_repo="projects-stg.registry.vmware.com/tce/kubeapps"
+readonly staging_oci_repo="projects-stg.registry.vmware.com/kubeapps/kubeapps"
 readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
 readonly logfile="/tmp/package-kubeapps-version.log"
 
