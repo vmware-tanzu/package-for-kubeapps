@@ -14,7 +14,7 @@ readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
 # TODO(minelson): Update staging project once we have access. For now
 # we can keep pushing to the staging tce project.
-readonly staging_oci_repo="projects-stg.registry.vmware.com/tce/kubeapps"
+readonly staging_oci_repo="projects-stg.registry.vmware.com/kubeapps/kubeapps"
 readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
 readonly logfile="/tmp/package-kubeapps-version.log"
 
@@ -53,8 +53,6 @@ main() {
   # Generate the package yaml for the staging release first.
   generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
 
-  # TODO(minelson): Eventually get the sha from the bundle lock to put in the
-  # package.yaml rather than the tag.
   info "Pushing $oci_repo:$version$packaging_version_suffix image."
   imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
 
