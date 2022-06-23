@@ -17,7 +17,7 @@ readonly reset_color='\033[0m'
 readonly staging_oci_repo="projects-stg.registry.vmware.com/tce/kubeapps"
 readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
 readonly logfile="/tmp/package-kubeapps-version.log"
-readonly default_values_file="$script_dir/default-values.yaml"
+readonly default_values_file="$template_dir/default-values.yaml"
 
 source test/testing-lib.sh
 
