@@ -17,6 +17,7 @@ readonly reset_color='\033[0m'
 readonly staging_oci_repo="projects-stg.registry.vmware.com/kubeapps/kubeapps"
 readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
 readonly logfile="/tmp/package-kubeapps-version.log"
+readonly default_values_file="$template_dir/default-values.yaml"
 
 source test/testing-lib.sh
 
@@ -34,6 +35,8 @@ main() {
   local version_dir="$script_dir/$version$packaging_version_suffix"
   local bundle_dir="$version_dir/bundle"
   local yaml_schema="$build_dir/kubeapps-$version-schema.yaml"
+
+   mkdir -p "$build_dir"
 
   check_no_overwrite "$version_dir"
 
@@ -130,7 +133,7 @@ generate_package_yaml() {
   # imgpkgBundle, we may need to update to a sha at some point.
   ytt -f "$template_dir/package.yaml" \
     --data-value-yaml version="$version$packaging_version_suffix" \
-    --data-value-yaml releasedAt="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" \
+    --data-value-yaml releasedAt="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
     --data-value-yaml ociRepo="$oci_repo" \
     --data-values-file "$yaml_schema" \
     --output-files "$version_dir/"
@@ -199,7 +202,7 @@ update_default_values() {
   local values_file=$1
 
   info "Updating values file to default to carvel support."
-  yq '.packaging.helm.enabled = false , .packaging.carvel.enabled = true' --inplace $values_file
+  yq eval-all --inplace '. as $item ireduce ({}; . *+ $item )' $values_file $default_values_file
 }
 
 sync_chart_via_vendir(){
