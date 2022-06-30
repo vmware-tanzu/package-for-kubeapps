@@ -1,5 +1,9 @@
 packaging:
   helm:
-    enabled: false
+    enabled: true
   carvel:
     enabled: true
+apprepository:
+  initialRepos:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
