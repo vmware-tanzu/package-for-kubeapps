@@ -4,9 +4,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-K8S_KIND_VERSION=${K8S_KIND_VERSION:-"1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6"}
+K8S_KIND_VERSION=${K8S_KIND_VERSION:-"1.24.0@sha256:0866296e693efe1fed79d5e6c7af8df71fc73ae45e3679af05342239cdc5bc8e"}
 CLUSTER_CONFIG=${CLUSTER_CONFIG:-"/tmp/kubeapps-carvel-e2e"}
-KAPP_CONTROLLER_VERSION=${KAPP_CONTROLLER_VERSION:-"v0.32.0"}
+KAPP_CONTROLLER_VERSION=${KAPP_CONTROLLER_VERSION:-"v0.38.3"}
 
 setup_kind_cluster() {
   kind create cluster --image "kindest/node:${K8S_KIND_VERSION}" \
@@ -43,7 +43,7 @@ install_kubeapps() {
       --version "$version" \
       --values-file test/test-values.yaml
 
-    echo "Package install reconciled successfully. Deleting..."
+    echo "Package install for version '$version' reconciled successfully. Deleting..."
     tanzu package installed delete kubeapps \
       --kubeconfig="${CLUSTER_CONFIG}" \
       --yes
