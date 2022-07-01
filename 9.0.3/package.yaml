@@ -5,7 +5,7 @@ metadata:
 spec:
   refName: kubeapps.community.tanzu.vmware.com
   version: 9.0.3
-  releasedAt: "2022-07-01T10:35:07Z"
+  releasedAt: "2022-07-01T13:47:55Z"
   valuesSchema:
     openAPIv3:
       properties:
