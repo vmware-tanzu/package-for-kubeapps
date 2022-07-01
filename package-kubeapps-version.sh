@@ -36,7 +36,7 @@ main() {
   local bundle_dir="$version_dir/bundle"
   local yaml_schema="$build_dir/kubeapps-$version-schema.yaml"
 
-   mkdir -p "$build_dir"
+  mkdir -p "$build_dir"
 
   check_no_overwrite "$version_dir"
 
@@ -96,7 +96,9 @@ create_release() {
   git commit -m "Adding $tag files"
   info "Committing files and tagging $tag for release"
   git tag "$tag" -m "$tag"
-  git push upstream "tags/$tag"
+  # Pick first remote to push
+  local git_origin="$(git remote | head -n 1)"
+  git push "$git_origin" "tags/$tag"
 
   info "Creating release for $tag"
   gh release create "$tag" "./$version_with_suffix/package.yaml" "./metadata.yaml" "./README.md" \
@@ -113,8 +115,8 @@ generate_image_lock_file() {
   local bundle_dir=$1
 
   info "Collecting all images to $build_dir/images.txt"
-  find 8.0.14 -name "values.yaml" -exec yq '... | select(has("image")) | .image.registry + "/" + .image.repository + ":" + .image.tag' {} \; | uniq > "$build_dir/images.txt"
-  find 8.0.14 -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
+  find $version -name "values.yaml" -exec yq '... | select(has("image")) | .image.registry + "/" + .image.repository + ":" + .image.tag' {} \; | uniq > "$build_dir/images.txt"
+  find $version -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
 
   info "Generating fake deployments for kbld images."
   cp "$template_dir/kbld_config.yml" "$bundle_dir/"
