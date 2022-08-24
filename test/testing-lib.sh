@@ -13,8 +13,7 @@ CLUSTER_NAME="kubeapps-carvel-e2e"
 KAPP_CONTROLLER_VERSION=${KAPP_CONTROLLER_VERSION:-"v0.38.3"}
 
 setup_kind_cluster() {
-  local kind_config=$1
-
+  echo "Creating Kind cluster '${CLUSTER_NAME}'"
   kind create cluster --image "kindest/node:${K8S_KIND_VERSION}" \
     --name "${CLUSTER_NAME}" \
     --kubeconfig="${CLUSTER_CONFIG}" \

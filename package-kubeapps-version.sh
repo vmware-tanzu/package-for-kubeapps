@@ -67,7 +67,7 @@ main() {
   imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
 
   info "Testing installation of new package $version$packaging_version_suffix"
-  setup_kind_cluster "$script_dir/test/test-kind-config.yaml"
+  setup_kind_cluster
   install_kubeapps "$version$packaging_version_suffix"
   delete_kind_cluster
 
