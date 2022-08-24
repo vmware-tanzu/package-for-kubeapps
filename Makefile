@@ -7,7 +7,7 @@ PACKAGE_VERSION_SUFFIX ?= ""
 registry_user=$(shell echo "$$REGISTRY_USER")
 registry_token=$(shell echo "$$REGISTRY_TOKEN")
 
-default: run-packager
+default: package-stg
 
 build-packager-image:
 	DOCKER_BUILDKIT=1 docker build --progress=plain -t kubeapps/carvel-packager -f ./Dockerfile .

@@ -222,4 +222,10 @@ err_report() {
 
 trap 'err_report $? $LINENO' EXIT
 
+if [ $# -eq 0 ];then
+  echo "No arguments supplied"
+  print_usage
+  exit 1
+fi
+
 main "${@}"

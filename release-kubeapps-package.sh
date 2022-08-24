@@ -13,6 +13,10 @@ readonly script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 readonly template_dir="$script_dir/packaging-templates"
 readonly git_repo="vmware-tanzu/package-for-kubeapps"
 
+# Variables set by get_options.
+version=""
+packaging_version_suffix=""
+
 main() {
   get_options "${@}"
   
@@ -90,5 +94,11 @@ err_report() {
 }
 
 trap 'err_report $? $LINENO' EXIT
+
+if [ $# -eq 0 ];then
+  echo "No arguments supplied"
+  print_usage
+  exit 1
+fi
 
 main "${@}"
