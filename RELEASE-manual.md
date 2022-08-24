@@ -1,4 +1,4 @@
-# Releasing a new version of the Kubeapps carvel package for TCE
+# Releasing manually a new version of the Kubeapps Carvel package for TCE
 
 ## Dependencies
 

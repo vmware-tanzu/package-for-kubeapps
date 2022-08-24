@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+# Copyright 2022 the Kubeapps contributors.
+# SPDX-License-Identifier: Apache-2.0
+
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -14,15 +17,18 @@ readonly green='\033[0;32m'
 readonly reset_color='\033[0m'
 # TODO(minelson): Update staging project once we have access. For now
 # we can keep pushing to the staging tce project.
-readonly staging_oci_repo="projects-stg.registry.vmware.com/kubeapps/kubeapps"
-readonly production_oci_repo="projects.registry.vmware.com/kubeapps/kubeapps"
+readonly production_oci_registry=projects.registry.vmware.com
+readonly staging_oci_registry=projects-stg.registry.vmware.com
+readonly production_oci_repo="$production_oci_registry/kubeapps/kubeapps"
+readonly staging_oci_repo="$staging_oci_registry/kubeapps/kubeapps"
 readonly logfile="/tmp/package-kubeapps-version.log"
 readonly default_values_file="$template_dir/default-values.yaml"
 
-source test/testing-lib.sh
+source $script_dir/test/testing-lib.sh
 
 # Default to staging repo for development work unless production specified.
 oci_repo="$staging_oci_repo"
+oci_registry="$staging_oci_registry"
 # version will be set by get_options.
 version=""
 
@@ -56,6 +62,7 @@ main() {
   # Generate the package yaml for the staging release first.
   generate_package_yaml "$version" "$packaging_version_suffix" "$version_dir" "$yaml_schema" "$oci_repo"
 
+  login_registry "$REGISTRY_USER" "$REGISTRY_TOKEN"
   info "Pushing $oci_repo:$version$packaging_version_suffix image."
   imgpkg push --bundle "$oci_repo:$version$packaging_version_suffix" -f "$bundle_dir" --lock-output "$build_dir/kubeapps-lock-file.yaml" 1> "$logfile"
 
@@ -63,13 +70,6 @@ main() {
   setup_kind_cluster
   install_kubeapps "$version$packaging_version_suffix"
   delete_kind_cluster
-
-  # Commit, tag and create a release for production only.
-  if [ "$oci_repo" = "$production_oci_repo" ]; then
-    create_release "$version" "$packaging_version_suffix"
-  else
-    info "Skipping creation of release for staging test."
-  fi
 
   info "Finished. To test the package manually (until automated tests) you can make the package available on your cluster with:"
   info "kubectl apply -n kapp-controller-packaging-global -f ./metadata.yaml -f ./$version$packaging_version_suffix/package.yaml"
@@ -87,23 +87,10 @@ check_no_overwrite() {
   fi
 }
 
-create_release() {
-  local version=$1
-  local packaging_version_suffix=$2
-  local version_with_suffix="$version$packaging_version_suffix"
-  local tag="v$version_with_suffix"
-  git add "./$version_with_suffix"
-  git commit -m "Adding $tag files"
-  info "Committing files and tagging $tag for release"
-  git tag "$tag" -m "$tag"
-  # Pick first remote to push
-  local git_origin="$(git remote | head -n 1)"
-  git push "$git_origin" "tags/$tag"
-
-  info "Creating release for $tag"
-  gh release create "$tag" "./$version_with_suffix/package.yaml" "./metadata.yaml" "./README.md" \
-    --repo vmware-tanzu/package-for-kubeapps \
-    --notes-file "$template_dir/release-notes.md"
+login_registry() {
+  local registry_user=$1
+  local registry_token=$2
+  docker login $oci_registry -u $registry_user -p $registry_token
 }
 
 generate_image_lock_file() {
@@ -115,8 +102,8 @@ generate_image_lock_file() {
   local bundle_dir=$1
 
   info "Collecting all images to $build_dir/images.txt"
-  find $version -name "values.yaml" -exec yq '... | select(has("image")) | .image.registry + "/" + .image.repository + ":" + .image.tag' {} \; | uniq > "$build_dir/images.txt"
-  find $version -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
+  find $bundle_dir -name "values.yaml" -exec yq '... | select(has("image")) | .image.registry + "/" + .image.repository + ":" + .image.tag' {} \; | uniq > "$build_dir/images.txt"
+  find $bundle_dir -name "values.yaml" -exec yq '... | select(has("syncImage")) | .syncImage.registry + "/" + .syncImage.repository + ":" + .syncImage.tag' {} \; | uniq >> "$build_dir/images.txt"
 
   info "Generating fake deployments for kbld images."
   cp "$template_dir/kbld_config.yml" "$bundle_dir/"
@@ -163,6 +150,7 @@ get_options() {
         ;;
       p)
         export oci_repo="$production_oci_repo"
+        export oci_registry="$production_oci_registry"
         ;;
       s)
         # Support adding a suffix to the version name such as -dev1
@@ -233,5 +221,11 @@ err_report() {
 }
 
 trap 'err_report $? $LINENO' EXIT
+
+if [ $# -eq 0 ];then
+  echo "No arguments supplied"
+  print_usage
+  exit 1
+fi
 
 main "${@}"
