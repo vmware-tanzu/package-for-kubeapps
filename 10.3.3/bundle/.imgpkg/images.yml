@@ -1,0 +1,109 @@
+---
+apiVersion: imgpkg.carvel.dev/v1alpha1
+images:
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/bitnami-shell:11-debian-11-r23
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 11-debian-11-r23
+          url: docker.io/bitnami/bitnami-shell:11-debian-11-r23
+  image: index.docker.io/bitnami/bitnami-shell@sha256:d5748ef65f00ca048758854cec13c90fdb5e9633a404aaaf5e1d07690c793cb1
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/bitnami-shell:11-debian-11-r27
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 11-debian-11-r27
+          url: docker.io/bitnami/bitnami-shell:11-debian-11-r27
+  image: index.docker.io/bitnami/bitnami-shell@sha256:69da2c87742d07ecc308bbd3aa12e797ec97a636e697bd59c7a4af34d4c28965
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-apis:2.5.1-debian-11-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-debian-11-r0
+          url: docker.io/bitnami/kubeapps-apis:2.5.1-debian-11-r0
+  image: index.docker.io/bitnami/kubeapps-apis@sha256:cf310f4e8d8a10c61b55e6a49d9522161ab2c890c661420ef5885f616378067c
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-apprepository-controller:2.5.1-scratch-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-scratch-r0
+          url: docker.io/bitnami/kubeapps-apprepository-controller:2.5.1-scratch-r0
+  image: index.docker.io/bitnami/kubeapps-apprepository-controller@sha256:96996dd96a0e4a36b0f4d34dd5ce2f8207a543d540bacb9daff490a66173608f
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-asset-syncer:2.5.1-scratch-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-scratch-r0
+          url: docker.io/bitnami/kubeapps-asset-syncer:2.5.1-scratch-r0
+  image: index.docker.io/bitnami/kubeapps-asset-syncer@sha256:9a7a87841115c947eec9f8279c1dbc7522f64ef96dfbab4bc8aeb954647861d6
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-dashboard:2.5.1-debian-11-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-debian-11-r0
+          url: docker.io/bitnami/kubeapps-dashboard:2.5.1-debian-11-r0
+  image: index.docker.io/bitnami/kubeapps-dashboard@sha256:79851de62f519238d4fd2b91fc618f4cde9d4756f604737d3d10c1f5f03cd216
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-kubeops:2.5.1-scratch-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-scratch-r0
+          url: docker.io/bitnami/kubeapps-kubeops:2.5.1-scratch-r0
+  image: index.docker.io/bitnami/kubeapps-kubeops@sha256:63226aa618f7eaf46852a707e4d0ad67474d83f0b4fdf7677436b38566615dba
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/kubeapps-pinniped-proxy:2.5.1-debian-11-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 2.5.1-debian-11-r0
+          url: docker.io/bitnami/kubeapps-pinniped-proxy:2.5.1-debian-11-r0
+  image: index.docker.io/bitnami/kubeapps-pinniped-proxy@sha256:c4efd6e78718d094e5890d6c56372663f606cd2042563699b68d37a341a63ce0
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/nginx:1.23.1-debian-11-r15
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 1.23.1-debian-11-r15
+          url: docker.io/bitnami/nginx:1.23.1-debian-11-r15
+  image: index.docker.io/bitnami/nginx@sha256:caef3681b02a563c3b5e7fb12e75c4e5a569eee39b058518d96dd24f21e6d21a
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/oauth2-proxy:7.3.0-debian-11-r29
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 7.3.0-debian-11-r29
+          url: docker.io/bitnami/oauth2-proxy:7.3.0-debian-11-r29
+  image: index.docker.io/bitnami/oauth2-proxy@sha256:0a09e312524ed02fe83545dd5d6be4cd6e1163ed1d6cc059980130a8d3be5d0d
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/postgres-exporter:0.11.1-debian-11-r0
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 0.11.1-debian-11-r0
+          url: docker.io/bitnami/postgres-exporter:0.11.1-debian-11-r0
+  image: index.docker.io/bitnami/postgres-exporter@sha256:45ed16ce2a6ebcceacac7591dc84a377202f03fc86358c4bae6c3f005f755acf
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/postgresql:14.5.0-debian-11-r6
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 14.5.0-debian-11-r6
+          url: docker.io/bitnami/postgresql:14.5.0-debian-11-r6
+  image: index.docker.io/bitnami/postgresql@sha256:4355265e33e9c2a786aa145884d4b36ffd4c41c516b35d60df0b7495141ec738
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/redis-exporter:1.43.0-debian-11-r18
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 1.43.0-debian-11-r18
+          url: docker.io/bitnami/redis-exporter:1.43.0-debian-11-r18
+  image: index.docker.io/bitnami/redis-exporter@sha256:0d5bd14d2688f2ec167cd6ae1ddb8ac5ff3d7b78c3019cf95b3f28d6faa83ce4
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/redis-sentinel:7.0.4-debian-11-r8
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 7.0.4-debian-11-r8
+          url: docker.io/bitnami/redis-sentinel:7.0.4-debian-11-r8
+  image: index.docker.io/bitnami/redis-sentinel@sha256:fec54a701bccb35ba910491d1df7b52f6ce85d7f6b0ba1e7478b3d399518b231
+- annotations:
+    kbld.carvel.dev/id: docker.io/bitnami/redis:7.0.4-debian-11-r11
+    kbld.carvel.dev/origins: |
+      - resolved:
+          tag: 7.0.4-debian-11-r11
+          url: docker.io/bitnami/redis:7.0.4-debian-11-r11
+  image: index.docker.io/bitnami/redis@sha256:8b1c6b5c172037ecf8b422f4ba0bd0d58da3025748392e4cf53aec2a2d90e10f
+kind: ImagesLock
