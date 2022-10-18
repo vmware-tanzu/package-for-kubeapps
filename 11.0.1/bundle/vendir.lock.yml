@@ -1,0 +1,9 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - helmChart:
+      appVersion: 2.6.0
+      version: 11.0.1
+    path: kubeapps
+  path: config
+kind: LockConfig
